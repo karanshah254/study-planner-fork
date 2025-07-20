@@ -1,9 +1,10 @@
-import React from 'react';
+import { useState } from 'react';
 import { Menu, Bell, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header = ({ setSidebarOpen }) => {
   const { user } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
@@ -15,7 +16,7 @@ const Header = ({ setSidebarOpen }) => {
           >
             <Menu className="h-5 w-5" />
           </button>
-          
+
           <div className="hidden md:block">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               Welcome back, {user?.name?.split(' ')[0]}!
@@ -34,11 +35,33 @@ const Header = ({ setSidebarOpen }) => {
               />
             </div>
           </div>
-          
-          <button className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg relative">
+
+          <button
+            className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg relative"
+            onClick={() => setIsOpen(!isOpen)}
+          >
             <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+            {!isOpen && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+            )}
           </button>
+
+          {isOpen && (
+            <div className="absolute top-12 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg p-4 w-48 z-10">
+              <h2 className="text-lg text-gray-700 dark:text-gray-300 font-semibold mb-2">Notifications</h2>
+              <ul>
+                <li className="text-sm text-gray-700 dark:text-gray-300 mb-1">
+                  New study material added!
+                </li>
+                <li className="text-sm text-gray-700 dark:text-gray-300 mb-1">
+                  Course update: Assignment due tomorrow.
+                </li>
+                <li className="text-sm text-gray-700 dark:text-gray-300">
+                  Reminder: Webinar starts in 1 hour.
+                </li>
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </header>

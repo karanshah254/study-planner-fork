@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Calendar,
@@ -11,14 +11,18 @@ import {
   Play,
   Pause,
   CheckCircle,
-  BarChart3
+  BarChart3,
+  RotateCcw,
+  EyeIcon
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [activeTimer, setActiveTimer] = useState(false);
   const [timerMinutes, setTimerMinutes] = useState(25);
   const [timerSeconds, setTimerSeconds] = useState(0);
+  const intervalRef = useRef(null);
 
   const subjects = [
     { name: 'Mathematics', progress: 85, color: 'bg-purple-500', sessions: 12 },
@@ -48,6 +52,39 @@ const Dashboard = () => {
       case 'low': return 'text-green-500 bg-green-50 dark:bg-green-900/20';
       default: return 'text-gray-500 bg-gray-50 dark:bg-gray-900/20';
     }
+  };
+
+  // timer logic
+  useEffect(() => {
+    if (activeTimer) {
+      intervalRef.current = setInterval(() => {
+        setTimerSeconds((prevSec) => {
+          if (prevSec === 0) {
+            if (timerMinutes === 0) {
+              clearInterval(intervalRef.current);
+              setActiveTimer(false);
+              return 0;
+            } else {
+              setTimerMinutes((min) => min - 1);
+              return 59;
+            }
+          }
+          return prevSec - 1;
+        });
+      }, 1000);
+    } else {
+      clearInterval(intervalRef.current);
+    }
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalRef.current);
+  }, [activeTimer, timerMinutes]);
+
+  const handleReset = () => {
+    clearInterval(intervalRef.current);
+    setActiveTimer(false);
+    setTimerMinutes(25);
+    setTimerSeconds(0);
   };
 
   return (
@@ -141,6 +178,13 @@ const Dashboard = () => {
                   {activeTimer ? <Pause className="h-4 w-4 mr-2" /> : <Play className="h-4 w-4 mr-2" />}
                   {activeTimer ? 'Pause' : 'Start'}
                 </button>
+                <button
+                  onClick={handleReset}
+                  className="flex items-center px-4 py-2 rounded-lg font-medium bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white transition-colors"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reset
+                </button>
               </div>
             </div>
           </div>
@@ -149,9 +193,13 @@ const Dashboard = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Today's Tasks</h3>
-              <button className="text-purple-600 hover:text-purple-700">
-                <Plus className="h-5 w-5" />
-              </button>
+              <Link to={"/tasks"} className="text-purple-600 hover:text-purple-700 relative group">
+                <EyeIcon className="h-5 w-5" />
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
+                  View all tasks
+                </div>
+              </Link>
+              
             </div>
             <div className="space-y-3">
               {todaysTasks.map((task) => (
@@ -178,9 +226,9 @@ const Dashboard = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Subject Progress</h3>
-              <button className="text-purple-600 hover:text-purple-700 font-medium">
+              <Link to={"/subjects"} className="text-purple-600 hover:text-purple-700 font-medium">
                 View All
-              </button>
+              </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {subjects.map((subject, index) => (
